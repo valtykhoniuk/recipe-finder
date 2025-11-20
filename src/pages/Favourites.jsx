@@ -4,6 +4,7 @@ const Favourites = () => {
   return (
     <div>
       <h1>Favourites</h1>
+      {/* the same as Home.jsx currently*/}
     </div>
   );
 };

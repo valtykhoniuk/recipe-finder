@@ -1,0 +1,10 @@
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  color: var(--main-color);
+  font-family: var(--main-text-font);
+  background-color: var(--background-color);
+}

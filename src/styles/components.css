@@ -1,0 +1,16 @@
+.receipt-card__container {
+  padding: 10px;
+  background-color: white;
+  border-radius: 20px;
+}
+
+.receipt-card {
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.receipt-card * {
+  background-color: white;
+}
