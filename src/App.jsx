@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home.jsx";
 import Favourites from "./pages/Favourites.jsx";
@@ -10,17 +10,23 @@ function App() {
   const [mealType, setMealType] = useState("");
   const [maxCalories, setMaxCalories] = useState(800);
 
-  useEffect(() => {
-    async function load() {
-      const data = await controller("/receipts");
-      setAllRecipes(data);
-    }
-    load();
+  const loadRecipes = useCallback(async () => {
+    const data = await controller("/receipts");
+    setAllRecipes(data);
   }, []);
 
+  useEffect(() => {
+    loadRecipes();
+  }, [loadRecipes]);
+
   const filteredRecipes = allRecipes
-    .filter((r) => (mealType ? r.mealType === mealType : true))
-    .filter((r) => r.calories <= maxCalories);
+    .filter((recipe) => (mealType ? recipe.mealType === mealType : true))
+    .filter((recipe) => recipe.calories <= maxCalories);
+
+  const returnToDefaultValues = () => {
+    setMealType("");
+    setMaxCalories(800);
+  };
 
   const favouriteRecipes = allRecipes.filter((r) => r.isFavourite === true);
 
@@ -32,8 +38,7 @@ function App() {
         onMealTypeChange={setMealType}
         onMaxCaloriesChange={setMaxCalories}
         onClear={() => {
-          setMealType("");
-          setMaxCalories(800);
+          returnToDefaultValues();
         }}
       />
 
