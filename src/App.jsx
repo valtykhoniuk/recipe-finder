@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home.jsx";
 import Favourites from "./pages/Favourites.jsx";
+import Layout from "./pages/Layout.jsx";
 import Header from "./components/Header.jsx";
 import { controller } from "./api/api.js";
 
@@ -37,7 +38,7 @@ function App() {
 
   const favouriteRecipes = allRecipes.filter((r) => r.isFavourite === true);
 
-  const toogleIngredient = (ingredient) => {
+  const toggleIngredient = (ingredient) => {
     setSelectedIngredients((prev) => {
       return prev.includes(ingredient)
         ? prev.filter((i) => i !== ingredient)
@@ -46,27 +47,28 @@ function App() {
   };
 
   return (
-    <div className="app">
-      <Header
-        mealType={mealType}
-        maxCalories={maxCalories}
-        selectedIngredients={selectedIngredients}
-        onMealTypeChange={setMealType}
-        onMaxCaloriesChange={setMaxCalories}
-        onIngredientToggle={toogleIngredient}
-        onClear={() => {
-          returnToDefaultValues();
-        }}
-      />
-
-      <Routes>
-        <Route path="/" element={<Home recipes={filteredRecipes} />} />
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <Layout
+            mealType={mealType}
+            maxCalories={maxCalories}
+            selectedIngredients={selectedIngredients}
+            onMealTypeChange={setMealType}
+            onMaxCaloriesChange={setMaxCalories}
+            onIngredientToggle={toggleIngredient}
+            onClear={returnToDefaultValues}
+          />
+        }
+      >
+        <Route index element={<Home recipes={filteredRecipes} />} />
         <Route
-          path="/favourites"
+          path="favourites"
           element={<Favourites recipes={favouriteRecipes} />}
         />
-      </Routes>
-    </div>
+      </Route>
+    </Routes>
   );
 }
 
