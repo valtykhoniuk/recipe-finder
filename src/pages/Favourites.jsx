@@ -1,10 +1,16 @@
-import React from "react";
+import RecipeCard from "../components/RecipeCard";
 
-const Favourites = () => {
+const Favourites = ({ recipes }) => {
   return (
-    <div>
-      <h1>Favourites</h1>
-      {/* the same as Home.jsx currently*/}
+    <div className="cards__container">
+      {recipes.map((recipe) => (
+        <RecipeCard
+          key={recipe.id}
+          name={recipe.name}
+          calories={recipe.calories}
+          desc={recipe.desc}
+        />
+      ))}
     </div>
   );
 };
