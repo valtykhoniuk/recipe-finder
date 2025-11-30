@@ -5,7 +5,9 @@ import Favourites from "./pages/Favourites.js";
 import Layout from "./pages/Layout.jsx";
 import { controller } from "./api/api.js";
 import { Recipe } from "./utils/ types.js";
-import CreateRecipe from "./pages/ CreateRecipe.js";
+import CreateRecipe from "./pages/CreateRecipe.js";
+import EditRecipe from "./pages/EditRecipe.js";
+import RecipePage from "./pages/RecipePage.js";
 
 function App() {
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
@@ -74,8 +76,11 @@ function App() {
           path="favourites"
           element={<Favourites recipes={favouriteRecipes} />}
         />
-        <Route path="create_new_recipe" element={<CreateRecipe />} />
       </Route>
+
+      <Route path="recipe/:id" element={<RecipePage />} />
+      <Route path="/create_new_recipe" element={<CreateRecipe />} />
+      <Route path="/recipe/:id/edit" element={<EditRecipe />} />
     </Routes>
   );
 }
