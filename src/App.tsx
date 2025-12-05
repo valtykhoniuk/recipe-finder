@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
+import styled from "styled-components";
+
 import Home from "./pages/Home.js";
 import Favourites from "./pages/Favourites.js";
 import Layout from "./pages/Layout.jsx";
@@ -9,6 +11,13 @@ import CreateRecipe from "./pages/CreateRecipe.js";
 import EditRecipe from "./pages/EditRecipe.js";
 import RecipePage from "./pages/RecipePage.js";
 
+const AppContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--background-color);
+`;
+
 function App() {
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
   const [mealType, setMealType] = useState<string>("");
@@ -16,16 +25,12 @@ function App() {
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
 
   const loadRecipes = useCallback(async () => {
-    const data = await controller("/receipts");
+    const data = await controller<Recipe[]>("/receipts");
     setAllRecipes(data);
   }, []);
 
   useEffect(() => {
-    async function fetchRecipes() {
-      const data = await controller("/receipts");
-      setAllRecipes(data);
-    }
-    fetchRecipes();
+    loadRecipes();
   }, [loadRecipes]);
 
   const filteredRecipes = allRecipes
@@ -45,43 +50,45 @@ function App() {
     setSelectedIngredients([]);
   };
 
-  const favouriteRecipes = allRecipes.filter((r) => r.isFavourite === true);
+  const favouriteRecipes = allRecipes.filter((r) => r.isFavourite);
 
   const toggleIngredient = (ingredient: string) => {
-    setSelectedIngredients((prev) => {
-      return prev.includes(ingredient)
+    setSelectedIngredients((prev) =>
+      prev.includes(ingredient)
         ? prev.filter((i) => i !== ingredient)
-        : [...prev, ingredient];
-    });
+        : [...prev, ingredient]
+    );
   };
 
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <Layout
-            mealType={mealType}
-            maxCalories={maxCalories}
-            selectedIngredients={selectedIngredients}
-            onMealTypeChange={setMealType}
-            onMaxCaloriesChange={setMaxCalories}
-            onIngredientToggle={toggleIngredient}
-            onClear={returnToDefaultValues}
-          />
-        }
-      >
-        <Route index element={<Home recipes={filteredRecipes} />} />
+    <AppContainer>
+      <Routes>
         <Route
-          path="favourites"
-          element={<Favourites recipes={favouriteRecipes} />}
-        />
-      </Route>
+          path="/"
+          element={
+            <Layout
+              mealType={mealType}
+              maxCalories={maxCalories}
+              selectedIngredients={selectedIngredients}
+              onMealTypeChange={setMealType}
+              onMaxCaloriesChange={setMaxCalories}
+              onIngredientToggle={toggleIngredient}
+              onClear={returnToDefaultValues}
+            />
+          }
+        >
+          <Route index element={<Home recipes={filteredRecipes} />} />
+          <Route
+            path="favourites"
+            element={<Favourites recipes={favouriteRecipes} />}
+          />
+        </Route>
 
-      <Route path="recipe/:id" element={<RecipePage />} />
-      <Route path="/create_new_recipe" element={<CreateRecipe />} />
-      <Route path="/recipe/:id/edit" element={<EditRecipe />} />
-    </Routes>
+        <Route path="recipe/:id" element={<RecipePage />} />
+        <Route path="/create_new_recipe" element={<CreateRecipe />} />
+        <Route path="/recipe/:id/edit" element={<EditRecipe />} />
+      </Routes>
+    </AppContainer>
   );
 }
 

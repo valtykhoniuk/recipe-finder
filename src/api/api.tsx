@@ -30,7 +30,7 @@ api.interceptors.response.use(
   }
 );
 
-export async function controller<T = any>(
+export async function controller<T = unknown>(
   path: string,
   method: Method = "GET",
   body: unknown = null

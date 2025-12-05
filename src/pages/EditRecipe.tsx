@@ -1,120 +1,216 @@
-import React from "react";
-import { controller } from "../api/api";
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import ALL_INGREDIENTS from "../utils/constants";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import styled from "styled-components";
+import ALL_INGREDIENTS, { MEAL_TYPES } from "../utils/constants";
+import { controller } from "../api/api";
 
-const EditRecipe = () => {
+interface RecipeFormValues {
+  name: string;
+  desc: string;
+  calories: number;
+  mealType: string;
+  ingredients: string[];
+  image: string;
+}
+
+const validationSchema = Yup.object({
+  name: Yup.string().required("Required"),
+  desc: Yup.string().required("Required"),
+  calories: Yup.number()
+    .required("Required")
+    .min(0, "Calories must be positive"),
+  mealType: Yup.string().required("Required"),
+  ingredients: Yup.array().min(1, "Select at least one ingredient"),
+  image: Yup.string().url("Invalid URL").required("Required"),
+});
+
+// Styled components
+const Container = styled.div`
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
+`;
+
+const FieldContainer = styled.div`
+  margin-bottom: 1rem;
+`;
+
+const Label = styled.label`
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+`;
+
+const Input = styled(Field)`
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+`;
+
+const TextArea = styled(Field)`
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  min-height: 100px;
+`;
+
+const Select = styled(Field)`
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+`;
+
+const CheckboxLabel = styled.label`
+  display: block;
+  margin-bottom: 0.25rem;
+`;
+
+const ErrorText = styled.p`
+  color: red;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+`;
+
+const Button = styled.button`
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background-color: var(--main-color, #1976d2);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  border-radius: 8px;
+
+  &:hover {
+    background-color: #115293;
+  }
+`;
+
+const EditRecipe: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [name, setName] = useState("");
-  const [desc, setDesc] = useState("");
-  const [calories, setCalories] = useState(0);
-  const [mealType, setMealType] = useState("");
-  const [ingredients, setIngredients] = useState<string[]>([]);
-  const [image, setImage] = useState("");
-
-  function setRecipeData(data: any) {
-    setName(data.name);
-    setDesc(data.desc);
-    setCalories(data.calories);
-    setMealType(data.mealType);
-    setIngredients(data.ingredients || []);
-    setImage(data.image || "");
-  }
+  const [initialValues, setInitialValues] = useState<RecipeFormValues>({
+    name: "",
+    desc: "",
+    calories: 0,
+    mealType: "",
+    ingredients: [],
+    image: "",
+  });
 
   useEffect(() => {
-    async function fetchRecipe() {
-      const data = await controller(`/receipts/${id}`);
-      setRecipeData(data);
-    }
-    fetchRecipe();
+    (async () => {
+      try {
+        const data = (await controller(`/receipts/${id}`)) as RecipeFormValues;
+        setInitialValues({
+          name: data.name || "",
+          desc: data.desc || "",
+          calories: data.calories || 0,
+          mealType: data.mealType || "",
+          ingredients: data.ingredients || [],
+          image: data.image || "",
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    })();
   }, [id]);
 
-  const toggleIngredient = (ingredient: string) => {
-    setIngredients((prev) =>
-      prev.includes(ingredient)
-        ? prev.filter((i) => i !== ingredient)
-        : [...prev, ingredient]
-    );
+  const handleSubmit = async (
+    values: RecipeFormValues,
+    { setSubmitting }: any
+  ) => {
+    try {
+      await controller(`/receipts/${id}`, "PUT", values);
+      alert("Recipe updated successfully!");
+      navigate("/recipe/" + id);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update recipe");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    await controller(`/receipts/${id}`, "PUT", {
-      name,
-      desc,
-      calories,
-      mealType,
-      ingredients,
-      image,
-    });
-    alert("Recipe updated successfully!");
-    navigate("/recipe/" + id);
-  }
-
   return (
-    <div className="create-recipe-page">
+    <Container>
       <h2>Edit Recipe</h2>
+      <Formik
+        enableReinitialize
+        initialValues={initialValues}
+        validationSchema={validationSchema}
+        onSubmit={handleSubmit}
+      >
+        {({ values, setFieldValue }) => (
+          <Form>
+            <FieldContainer>
+              <Label htmlFor="name">Name:</Label>
+              <Input name="name" />
+              <ErrorMessage name="name" component={ErrorText} />
+            </FieldContainer>
 
-      <form onSubmit={handleSubmit} className="create-recipe-form">
-        <div>
-          <label>Name:</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} />
-        </div>
+            <FieldContainer>
+              <Label htmlFor="desc">Description:</Label>
+              <TextArea as="textarea" name="desc" />
+              <ErrorMessage name="desc" component={ErrorText} />
+            </FieldContainer>
 
-        <div>
-          <label>Description:</label>
-          <textarea value={desc} onChange={(e) => setDesc(e.target.value)} />
-        </div>
+            <FieldContainer>
+              <Label htmlFor="calories">Calories:</Label>
+              <Input type="number" name="calories" />
+              <ErrorMessage name="calories" component={ErrorText} />
+            </FieldContainer>
 
-        <div>
-          <label>Calories:</label>
-          <input
-            type="number"
-            value={calories}
-            onChange={(e) => setCalories(+e.target.value)}
-          />
-        </div>
+            <FieldContainer>
+              <Label htmlFor="mealType">Meal Type:</Label>
+              <Select as="select" name="mealType">
+                <option value="">Select meal type</option>
+                {MEAL_TYPES.map((type: any) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </Select>
+              <ErrorMessage name="mealType" component={ErrorText} />
+            </FieldContainer>
 
-        <div>
-          <label>Meal Type:</label>
-          <select
-            value={mealType}
-            onChange={(e) => setMealType(e.target.value)}
-          >
-            <option value="">Select</option>
-            <option value="breakfast">Breakfast</option>
-            <option value="lunch">Lunch</option>
-            <option value="dinner">Dinner</option>
-            <option value="snack">Snack</option>
-            <option value="dessert">Dessert</option>
-          </select>
-        </div>
+            <FieldContainer>
+              <Label>Ingredients:</Label>
+              {ALL_INGREDIENTS.map((ingredient) => (
+                <CheckboxLabel key={ingredient}>
+                  <input
+                    type="checkbox"
+                    checked={values.ingredients.includes(ingredient)}
+                    onChange={() => {
+                      const exists = values.ingredients.includes(ingredient);
+                      setFieldValue(
+                        "ingredients",
+                        exists
+                          ? values.ingredients.filter((i) => i !== ingredient)
+                          : [...values.ingredients, ingredient]
+                      );
+                    }}
+                  />
+                  {ingredient}
+                </CheckboxLabel>
+              ))}
+              <ErrorMessage name="ingredients" component={ErrorText} />
+            </FieldContainer>
 
-        <div>
-          <label>Ingredients:</label>
-          {ALL_INGREDIENTS.map((i) => (
-            <label key={i}>
-              <input
-                type="checkbox"
-                checked={ingredients.includes(i)}
-                onChange={() => toggleIngredient(i)}
-              />
-              {i}
-            </label>
-          ))}
-        </div>
+            <FieldContainer>
+              <Label htmlFor="image">Image URL:</Label>
+              <Input name="image" />
+              <ErrorMessage name="image" component={ErrorText} />
+            </FieldContainer>
 
-        <div>
-          <label>Image URL:</label>
-          <input value={image} onChange={(e) => setImage(e.target.value)} />
-        </div>
-
-        <button type="submit">Update Recipe</button>
-      </form>
-    </div>
+            <Button type="submit">Update Recipe</Button>
+          </Form>
+        )}
+      </Formik>
+    </Container>
   );
 };
 

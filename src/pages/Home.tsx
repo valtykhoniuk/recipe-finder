@@ -1,9 +1,19 @@
+import React from "react";
+import styled from "styled-components";
 import RecipeCard from "../components/RecipeCard";
-import { HomeProps } from "../utils/ types.js";
+import { HomeProps } from "../utils/ types";
+
+const CardsContainer = styled.div`
+  margin: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+`;
 
 const Home: React.FC<HomeProps> = ({ recipes }) => {
   return (
-    <div className="cards__container">
+    <CardsContainer>
       {recipes.map((recipe) => (
         <RecipeCard
           key={recipe.id}
@@ -13,7 +23,7 @@ const Home: React.FC<HomeProps> = ({ recipes }) => {
           desc={recipe.desc}
         />
       ))}
-    </div>
+    </CardsContainer>
   );
 };
 

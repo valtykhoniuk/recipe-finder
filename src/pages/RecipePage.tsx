@@ -1,76 +1,90 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { controller } from "../api/api";
+import styled from "styled-components";
+import {
+  Box,
+  Typography,
+  List,
+  ListItem,
+  Card,
+  CardContent,
+  CardMedia,
+  CardMediaProps,
+} from "@mui/material";
 
-const RecipePage = () => {
+interface RecipeFormValues {
+  name: string;
+  desc: string;
+  calories: number;
+  mealType: string;
+  ingredients: string[];
+  image: string;
+}
+
+const PageContainer = styled(Box)`
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+`;
+
+const StyledCard = styled(Card)`
+  border-radius: 16px;
+`;
+
+const StyledCardMedia = styled(CardMedia)<CardMediaProps>`
+  max-height: 300px;
+  object-fit: cover;
+`;
+
+const RecipePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-
-  const [name, setName] = useState("");
-  const [desc, setDesc] = useState("");
-  const [calories, setCalories] = useState(0);
-  const [mealType, setMealType] = useState("");
-  const [ingredients, setIngredients] = useState<string[]>([]);
-  const [image, setImage] = useState("");
-
-  function setRecipeData(data: any) {
-    setName(data.name);
-    setDesc(data.desc);
-    setCalories(data.calories);
-    setMealType(data.mealType);
-    setIngredients(data.ingredients || []);
-    setImage(data.image || "");
-  }
+  const [recipe, setRecipe] = useState<RecipeFormValues | null>(null);
 
   useEffect(() => {
-    async function fetchRecipe() {
-      const data = await controller(`/receipts/${id}`);
-      setRecipeData(data);
-    }
-
-    fetchRecipe();
+    (async () => {
+      try {
+        const data = (await controller(`/receipts/${id}`)) as RecipeFormValues;
+        setRecipe(data);
+      } catch (err) {
+        console.error(err);
+      }
+    })();
   }, [id]);
 
+  if (!recipe) return <Typography>Loading...</Typography>;
+
   return (
-    <div className="create-recipe-page">
-      <h2>Recipe</h2>
+    <PageContainer>
+      <StyledCard>
+        {recipe.image && (
+          <StyledCardMedia component="img" image={recipe.image} />
+        )}
+        <CardContent>
+          <Typography variant="h5" gutterBottom>
+            {recipe.name}
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            {recipe.desc}
+          </Typography>
+          <Typography variant="subtitle1">
+            <strong>Calories:</strong> {recipe.calories}
+          </Typography>
+          <Typography variant="subtitle1">
+            <strong>Meal Type:</strong> {recipe.mealType}
+          </Typography>
 
-      <div>
-        <p>
-          <strong>Name:</strong> {name}
-        </p>
-      </div>
-
-      <div>
-        <p>
-          <strong>Description:</strong> {desc}
-        </p>
-      </div>
-
-      <div>
-        <p>
-          <strong>Calories:</strong> {calories}
-        </p>
-      </div>
-
-      <div>
-        <p>
-          <strong>Meal Type:</strong> {mealType}
-        </p>
-      </div>
-
-      <div>
-        <p>
-          <strong>Ingredients:</strong>
-        </p>
-        <ul>
-          {ingredients.map((ingredient) => (
-            <li key={ingredient}>{ingredient}</li>
-          ))}
-        </ul>
-      </div>
-
-      {image && <img src={image} alt={name} style={{ width: "200px" }} />}
-    </div>
+          <Typography variant="subtitle1" gutterBottom>
+            Ingredients:
+          </Typography>
+          <List>
+            {recipe.ingredients.map((ingredient) => (
+              <ListItem key={ingredient}>{ingredient}</ListItem>
+            ))}
+          </List>
+        </CardContent>
+      </StyledCard>
+    </PageContainer>
   );
 };
 
