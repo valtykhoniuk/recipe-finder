@@ -26,7 +26,6 @@ const validationSchema = Yup.object({
   image: Yup.string().url("Invalid URL").required("Required"),
 });
 
-// Styled components
 const Container = styled.div`
   max-width: 600px;
   margin: 0 auto;

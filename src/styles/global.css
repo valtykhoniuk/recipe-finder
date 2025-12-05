@@ -5,6 +5,7 @@
   --main-text-font: "Roboto Mono", monospace;
   --main-color: rgba(21, 30, 176);
   --background-color: rgb(252, 244, 237);
+  --dark-background-color: rgb(233, 215, 200);
   font-family: var(--main-text-font);
   color: var(--main-color);
 }

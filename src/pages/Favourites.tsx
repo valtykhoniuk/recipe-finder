@@ -16,6 +16,7 @@ const Favourites: React.FC<FavouritesProps> = ({ recipes }) => {
     <CardsContainer>
       {recipes.map((recipe) => (
         <RecipeCard
+          id={recipe.id}
           key={recipe.id}
           name={recipe.name}
           calories={recipe.calories}

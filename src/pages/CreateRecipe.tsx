@@ -4,7 +4,9 @@ import * as Yup from "yup";
 import styled from "styled-components";
 import ALL_INGREDIENTS, { MEAL_TYPES } from "../utils/constants";
 import { controller } from "../api/api";
+import { useNavigate } from "react-router-dom";
 
+// --- Styled components ---
 const Container = styled.div`
   max-width: 600px;
   margin: 0 auto;
@@ -21,20 +23,20 @@ const Label = styled.label`
   margin-bottom: 0.25rem;
 `;
 
-const Input = styled(Field)`
+const Input = styled.input`
   width: 100%;
   padding: 0.5rem;
   font-size: 1rem;
 `;
 
-const TextArea = styled(Field)`
+const TextArea = styled.textarea`
   width: 100%;
   padding: 0.5rem;
   font-size: 1rem;
   min-height: 100px;
 `;
 
-const Select = styled(Field)`
+const Select = styled.select`
   width: 100%;
   padding: 0.5rem;
   font-size: 1rem;
@@ -66,6 +68,7 @@ const Button = styled.button`
   }
 `;
 
+// --- Types ---
 interface RecipeFormValues {
   name: string;
   desc: string;
@@ -75,18 +78,26 @@ interface RecipeFormValues {
   image: string;
 }
 
+// --- Validation ---
 const validationSchema = Yup.object({
-  name: Yup.string().required("Required"),
-  desc: Yup.string().required("Required"),
+  name: Yup.string().trim().required("Name is required"),
+  desc: Yup.string().trim().required("Description is required"),
   calories: Yup.number()
-    .required("Required")
+    .typeError("Calories must be a number")
+    .required("Calories is required")
     .min(0, "Calories must be positive"),
-  mealType: Yup.string().required("Required"),
+  mealType: Yup.string().trim().required("Meal type is required"),
   ingredients: Yup.array().min(1, "Select at least one ingredient"),
-  image: Yup.string().url("Invalid URL").required("Required"),
+  image: Yup.string()
+    .trim()
+    .url("Invalid URL")
+    .required("Image URL is required"),
 });
 
+// --- Component ---
 const CreateRecipe: React.FC = () => {
+  const navigate = useNavigate();
+
   const initialValues: RecipeFormValues = {
     name: "",
     desc: "",
@@ -101,9 +112,19 @@ const CreateRecipe: React.FC = () => {
     { resetForm, setSubmitting }: any
   ) => {
     try {
-      await controller("/receipts", "POST", values);
+      // --- Trim all string values before sending ---
+      const payload = {
+        ...values,
+        name: values.name.trim(),
+        desc: values.desc.trim(),
+        mealType: values.mealType.trim(),
+        image: values.image.trim(),
+      };
+
+      await controller("/receipts", "POST", payload);
       alert("Recipe created successfully!");
       resetForm();
+      navigate("/"); // optional: redirect to home
     } catch (err) {
       console.error(err);
       alert("Failed to create recipe");
@@ -122,37 +143,42 @@ const CreateRecipe: React.FC = () => {
       >
         {({ values, setFieldValue }) => (
           <Form>
+            {/* Name */}
             <FieldContainer>
               <Label htmlFor="name">Name:</Label>
-              <Input name="name" />
+              <Field as={Input} name="name" />
               <ErrorMessage name="name" component={ErrorText} />
             </FieldContainer>
 
+            {/* Description */}
             <FieldContainer>
               <Label htmlFor="desc">Description:</Label>
-              <TextArea as="textarea" name="desc" />
+              <Field as={TextArea} name="desc" />
               <ErrorMessage name="desc" component={ErrorText} />
             </FieldContainer>
 
+            {/* Calories */}
             <FieldContainer>
               <Label htmlFor="calories">Calories:</Label>
-              <Input type="number" name="calories" />
+              <Field as={Input} type="number" name="calories" />
               <ErrorMessage name="calories" component={ErrorText} />
             </FieldContainer>
 
+            {/* Meal Type */}
             <FieldContainer>
               <Label htmlFor="mealType">Meal Type:</Label>
-              <Select as="select" name="mealType">
+              <Field as={Select} name="mealType">
                 <option value="">Select meal type</option>
                 {MEAL_TYPES.map((type: any) => (
                   <option key={type.value} value={type.value}>
                     {type.label}
                   </option>
                 ))}
-              </Select>
+              </Field>
               <ErrorMessage name="mealType" component={ErrorText} />
             </FieldContainer>
 
+            {/* Ingredients */}
             <FieldContainer>
               <Label>Ingredients:</Label>
               {ALL_INGREDIENTS.map((ingredient) => (
@@ -176,9 +202,10 @@ const CreateRecipe: React.FC = () => {
               <ErrorMessage name="ingredients" component={ErrorText} />
             </FieldContainer>
 
+            {/* Image */}
             <FieldContainer>
               <Label htmlFor="image">Image URL:</Label>
-              <Input name="image" />
+              <Field as={Input} name="image" />
               <ErrorMessage name="image" component={ErrorText} />
             </FieldContainer>
 
