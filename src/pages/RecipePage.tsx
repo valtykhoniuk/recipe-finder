@@ -11,6 +11,7 @@ import {
   CardContent,
   CardMedia,
   CardMediaProps,
+  Button,
 } from "@mui/material";
 
 interface RecipeFormValues {
@@ -54,6 +55,10 @@ const RecipePage: React.FC = () => {
 
   if (!recipe) return <Typography>Loading...</Typography>;
 
+  const redirectToEdit = () => {
+    window.location.href = `/recipe/${id}/edit`;
+  };
+
   return (
     <PageContainer>
       <StyledCard>
@@ -82,6 +87,7 @@ const RecipePage: React.FC = () => {
               <ListItem key={ingredient}>{ingredient}</ListItem>
             ))}
           </List>
+          <Button onClick={redirectToEdit}>Edit</Button>
         </CardContent>
       </StyledCard>
     </PageContainer>

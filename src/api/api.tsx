@@ -35,11 +35,15 @@ export async function controller<T = unknown>(
   method: Method = "GET",
   body: unknown = null
 ): Promise<T> {
-  const response = await api({
+  const config: any = {
     url: path,
     method,
-    data: body,
-  });
+  };
 
+  if (body !== null && method !== "DELETE") {
+    config.data = body;
+  }
+
+  const response = await api(config);
   return response.data;
 }

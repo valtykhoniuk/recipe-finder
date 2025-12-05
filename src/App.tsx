@@ -2,14 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import styled from "styled-components";
 
-import Home from "./pages/Home.js";
-import Favourites from "./pages/Favourites.js";
-import Layout from "./pages/Layout.jsx";
-import { controller } from "./api/api.js";
-import { Recipe } from "./utils/ types.js";
-import CreateRecipe from "./pages/CreateRecipe.js";
-import EditRecipe from "./pages/EditRecipe.js";
-import RecipePage from "./pages/RecipePage.js";
+import Home from "./pages/Home";
+import Favourites from "./pages/Favourites";
+import Layout from "./pages/Layout";
+import { controller } from "./api/api";
+import { Recipe } from "./utils/ types";
+import CreateRecipe from "./pages/CreateRecipe";
+import EditRecipe from "./pages/EditRecipe";
+import RecipePage from "./pages/RecipePage";
 
 const AppContainer = styled.div`
   display: flex;
@@ -44,10 +44,15 @@ function App() {
           )
     );
 
-  const returnToDefaultValues = () => {
-    setMealType("");
-    setMaxCalories(800);
-    setSelectedIngredients([]);
+  const handleDeleteRecipe = async (id: string) => {
+    try {
+      await controller(`/receipts/${id}`, "DELETE");
+      setAllRecipes((prev) => prev.filter((recipe) => recipe.id !== id));
+      alert("Recipe deleted successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete recipe");
+    }
   };
 
   const favouriteRecipes = allRecipes.filter((r) => r.isFavourite);
@@ -58,6 +63,12 @@ function App() {
         ? prev.filter((i) => i !== ingredient)
         : [...prev, ingredient]
     );
+  };
+
+  const returnToDefaultValues = () => {
+    setMealType("");
+    setMaxCalories(800);
+    setSelectedIngredients([]);
   };
 
   return (
@@ -77,7 +88,12 @@ function App() {
             />
           }
         >
-          <Route index element={<Home recipes={filteredRecipes} />} />
+          <Route
+            index
+            element={
+              <Home recipes={filteredRecipes} onDelete={handleDeleteRecipe} />
+            }
+          />
           <Route
             path="favourites"
             element={<Favourites recipes={favouriteRecipes} />}

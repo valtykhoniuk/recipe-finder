@@ -10,10 +10,12 @@ export interface Recipe {
 }
 
 export interface RecipeCardProps {
+  id: string;
   name: string;
   calories: number;
   img?: string;
   desc: string;
+  onDelete?: (id: string) => void;
 }
 
 export interface LayoutProps {
@@ -30,6 +32,7 @@ export interface HeaderProps extends LayoutProps {}
 
 export interface HomeProps {
   recipes: Recipe[];
+  onDelete?: (id: string) => void;
 }
 
 export interface FavouritesProps {
