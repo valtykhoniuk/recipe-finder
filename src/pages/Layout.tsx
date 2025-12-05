@@ -1,7 +1,16 @@
+import React from "react";
 import { Outlet } from "react-router-dom";
+import styled from "styled-components";
 import Header from "../components/Header.jsx";
+import { LayoutProps } from "../utils/ types.js";
 
-const Layout = ({
+const AppContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const Layout: React.FC<LayoutProps> = ({
   mealType,
   maxCalories,
   selectedIngredients,
@@ -11,7 +20,7 @@ const Layout = ({
   onClear,
 }) => {
   return (
-    <div className="app">
+    <AppContainer>
       <Header
         mealType={mealType}
         maxCalories={maxCalories}
@@ -21,9 +30,8 @@ const Layout = ({
         onIngredientToggle={onIngredientToggle}
         onClear={onClear}
       />
-
       <Outlet />
-    </div>
+    </AppContainer>
   );
 };
 

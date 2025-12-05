@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { Method } from "axios";
 const API = "https://691e7e99bb52a1db22be0ee9.mockapi.io/api/v1";
 
 export const api = axios.create({
@@ -30,7 +30,11 @@ api.interceptors.response.use(
   }
 );
 
-export async function controller(path, method = "GET", body = null) {
+export async function controller<T = unknown>(
+  path: string,
+  method: Method = "GET",
+  body: unknown = null
+): Promise<T> {
   const response = await api({
     url: path,
     method,
