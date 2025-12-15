@@ -2,14 +2,31 @@ import { useCallback, useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import styled from "styled-components";
 
-import Home from "./pages/Home.js";
-import Favourites from "./pages/Favourites.js";
-import Layout from "./pages/Layout.jsx";
-import { controller } from "./api/api.js";
-import { Recipe } from "./utils/ types.js";
-import CreateRecipe from "./pages/CreateRecipe.js";
-import EditRecipe from "./pages/EditRecipe.js";
-import RecipePage from "./pages/RecipePage.js";
+import Home from "./pages/Home";
+import Favourites from "./pages/Favourites";
+import Layout from "./pages/Layout";
+import { controller } from "./api/api";
+import CreateRecipe from "./pages/CreateRecipe";
+import EditRecipe from "./pages/EditRecipe";
+import RecipePage from "./pages/RecipePage";
+import {
+  useAppDispatch,
+  useAppSelector,
+  setMealType,
+  setMaxCalories,
+  toggleIngredient,
+  resetFilters,
+} from "./store/store";
+
+type Recipe = {
+  id: string;
+  name: string;
+  desc: string;
+  mealType: string;
+  calories: number;
+  ingredients?: string[];
+  isFavourite?: boolean;
+};
 
 const AppContainer = styled.div`
   display: flex;
@@ -19,10 +36,10 @@ const AppContainer = styled.div`
 `;
 
 function App() {
+  const dispatch = useAppDispatch();
+  const filters = useAppSelector((state) => state.filters);
+
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
-  const [mealType, setMealType] = useState<string>("");
-  const [maxCalories, setMaxCalories] = useState<number>(800);
-  const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
 
   const loadRecipes = useCallback(async () => {
     const data = await controller<Recipe[]>("/receipts");
@@ -34,31 +51,30 @@ function App() {
   }, [loadRecipes]);
 
   const filteredRecipes = allRecipes
-    .filter((recipe) => (mealType ? recipe.mealType === mealType : true))
-    .filter((recipe) => recipe.calories <= maxCalories)
     .filter((recipe) =>
-      selectedIngredients.length === 0
+      filters.mealType ? recipe.mealType === filters.mealType : true
+    )
+    .filter((recipe) => recipe.calories <= filters.maxCalories)
+    .filter((recipe) =>
+      filters.selectedIngredients.length === 0
         ? true
-        : selectedIngredients.every((ingredient) =>
+        : filters.selectedIngredients.every((ingredient) =>
             recipe.ingredients?.includes(ingredient)
           )
     );
 
-  const returnToDefaultValues = () => {
-    setMealType("");
-    setMaxCalories(800);
-    setSelectedIngredients([]);
+  const handleDeleteRecipe = async (id: string) => {
+    try {
+      await controller(`/receipts/${id}`, "DELETE");
+      setAllRecipes((prev) => prev.filter((recipe) => recipe.id !== id));
+      alert("Recipe deleted successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete recipe");
+    }
   };
 
   const favouriteRecipes = allRecipes.filter((r) => r.isFavourite);
-
-  const toggleIngredient = (ingredient: string) => {
-    setSelectedIngredients((prev) =>
-      prev.includes(ingredient)
-        ? prev.filter((i) => i !== ingredient)
-        : [...prev, ingredient]
-    );
-  };
 
   return (
     <AppContainer>
@@ -67,17 +83,22 @@ function App() {
           path="/"
           element={
             <Layout
-              mealType={mealType}
-              maxCalories={maxCalories}
-              selectedIngredients={selectedIngredients}
-              onMealTypeChange={setMealType}
-              onMaxCaloriesChange={setMaxCalories}
-              onIngredientToggle={toggleIngredient}
-              onClear={returnToDefaultValues}
+              mealType={filters.mealType}
+              maxCalories={filters.maxCalories}
+              selectedIngredients={filters.selectedIngredients}
+              onMealTypeChange={(v) => dispatch(setMealType(v))}
+              onMaxCaloriesChange={(v) => dispatch(setMaxCalories(v))}
+              onIngredientToggle={(v) => dispatch(toggleIngredient(v))}
+              onClear={() => dispatch(resetFilters())}
             />
           }
         >
-          <Route index element={<Home recipes={filteredRecipes} />} />
+          <Route
+            index
+            element={
+              <Home recipes={filteredRecipes} onDelete={handleDeleteRecipe} />
+            }
+          />
           <Route
             path="favourites"
             element={<Favourites recipes={favouriteRecipes} />}

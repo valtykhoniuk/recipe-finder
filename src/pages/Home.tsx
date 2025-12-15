@@ -11,16 +11,18 @@ const CardsContainer = styled.div`
   justify-content: center;
 `;
 
-const Home: React.FC<HomeProps> = ({ recipes }) => {
+const Home: React.FC<HomeProps> = ({ recipes, onDelete }) => {
   return (
     <CardsContainer>
       {recipes.map((recipe) => (
         <RecipeCard
           key={recipe.id}
+          id={recipe.id}
           name={recipe.name}
           img={recipe.image}
           calories={recipe.calories}
           desc={recipe.desc}
+          onDelete={onDelete}
         />
       ))}
     </CardsContainer>
